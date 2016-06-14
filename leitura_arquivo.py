@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 def leituraArquivo():
-    arquivo = open('./teste.cache', 'r')
+    arquivo = open('./testsimples.cache', 'r')
     enderecos = arquivo.readlines()
     arquivo.close()
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from random import randint
 
 class Linha:
     """Class object linha"""
@@ -7,8 +8,9 @@ class Linha:
     enderecoTotal = ''
     lru = ''
 
-    def __init__(self, rotulo):
-        self.rotulo = None
+    def __init__(self, rotulo, enderecoTotal):
+        self.rotulo = rotulo
+        self.enderecoTotal = enderecoTotal
 
 
 class Conjunto:
@@ -17,94 +19,105 @@ class Conjunto:
     tamanho = 0
     prox = 0
 
+    def __init__(self, qtdeLinhas):
+        linhas = []
+        tamanho = qtdeLinhas
+        prox = 0
+
+    def getConjunto(self):
+        return self.conjunto
+
+    def setConjunto(self, conjunto):
+        self.conjunto = conjunto
+
     def procuraRotulo(rotuloEndereco):
         for linha in linhas:
             if linhas.rotulo == rotuloEndereco:
                 data = datetime.now()
-                linha.lru(data);
-                return true;
+                linha.lru(data)
+                return true
         return false
 
-    def gravaRotulo(rotuloEndereco, politicaSubstituicao, politicaGravacao, MemoriaPrincipal mp, String enderecoTotal):
-        if prox == tamanho:
+    def gravaRotulo(self, rotuloEndereco, politicaSubstituicao, politicaGravacao, mp, enderecoTotal):
+        if self.prox == self.tamanho:
             if politicaSubstituicao == 0: #LRU
-                linhaMenosRecUsada = buscaUltimaUsada()
-                if politicaGravacao == 1:
-                    mp.adicionaNaMP(linhas[linhaMenosRecUsada].enderecototal);
-                }
-                linhas[linhaMenosRecUsada].rotulo = rotuloEndereco
-                linhas[linhaMenosRecUsada].enderecoTotal = enderecoTotal
-
+                poslinhaMenosRecUsada = buscaUltimaUsada()
                 data = datetime.now()
-                linhas[linhaMenosRecUsada].lru(data)
+                linha_object = Linha(rotuloEndereco, enderecoTotal)
+                linha_object.lru = data
+                del self.linha[poslinhaMenosRecUsada]
+                self.linha.insert(poslinhaMenosRecUsada, linha_object)
+                if politicaGravacao == 1:
+                    mp.adicionaNaMP(linha_object.enderecototal)
             else: #Aleatorio
-                # linhaAleatoria = (int) (Math.random() * tamanho+0);
+                linhaAleatoria = randint(0, self.tamanho)
                 if politicaGravacao == 1:
-                    # mp.adicionaNaMP(linhas[linhaAleatoria].getEnderecoTotal());
-                    pass
-                # linhas[linhaAleatoria].setRotulo(rotuloEndereco, enderecoTotal);
+                    mp.adicionaNaMP(linha[linhaAleatoria].enderecoTotal)
+                linhas[linhaAleatoria] = Linha(rotuloEndereco, enderecoTotal)
                 data = datetime.now()
-                # linhas[linhaAleatoria].lru(data);
+                linhas[linhaAleatoria].lru(data)
         else:
             data = datetime.now()
-            linhas[prox] = Linha();
-            linhas[prox].rotulo = rotuloEndereco
-            linhas[prox].enderecoTotal = enderecoTotal
-            linhas[prox].lru(data);
-            prox = prox + 1
+            linha_object = Linha(rotuloEndereco, enderecoTotal)
+            linha_object.lru(data)
+            self.linha.append(linha_object)
+            self.prox = self.prox + 1
 
-    def conjunto_qt(qtdeLinhas):
-        linhas = Linha[qtdeLinhas];
-        tamanho = qtdeLinhas;
-        prox = 0
-
-    def buscaUltimaUsada():
-        aux = linhas[0].lru
+    def buscaUltimaUsada(self):
+        aux = linha[0].lru
         menosUsado = 0
-        for i in linhas:
-            # if(linhas[i].getLru().compareTo(aux) < 0){
-            #     aux = linhas[i].getLru();
-            #     menosUsado = i;
-            # }
-        return menosUsado;
+        for i, x in enumerate(testlist):
+            if x.lru < aux:
+                aux = x.lru
+                menosUsado = i
+        return menosUsado
 
 class MemoriaCache:
     conjuntos = []
     tamanho = 0
     proximo = 0
 
-    def memoriaCache(qtdeConjuntos, qtdeLinhas):
-        tamanho = qtdeConjuntos;
-        conjuntos = Conjunto[];
-        for i in conjuntos:
-            # conjuntos[i] = new Conjunto(qtdeLinhas);
+    def __init__(self, qtdeConjuntos, qtdeLinhas):
+        self._tamanho = qtdeConjuntos
+        for i in range(0, qtdeConjuntos):
+            self.conjuntos.append(Conjunto(qtdeLinhas))
         proximo = 0
 
-    def procuraConjunto(enderecoConjunto):
-        # for(int i=0;i<proximo;i++){
-        #     if(conjuntos[i].getConjunto().equals(enderecoConjunto)){
-        #         return conjuntos[i];
-        #     }
-        # }
-        return None
 
-    def gravaConjunto(enderecoConjunto):
-        # if(proximo != tamanho){
-        #     conjuntos[proximo].setConjunto(enderecoConjunto);
-        #     proximo++;
-        #     return conjuntos[proximo-1];
-        # }
-        return None
+    def setConjuntos(self, conjuntos):
+        self.conjuntos = conjuntos
 
+    def getConjuntos(self):
+        return self.conjuntos
+
+    def procuraConjunto(self, enderecoConjunto):
+        for i in range(0, self.proximo):
+            if conjuntos[i].getConjunto() == enderecoConjunto:
+                return conjuntos[i]
+        return False
+
+    def gravaConjunto(self, enderecoConjunto):
+        if self.proximo != self.tamanho:
+            self.conjuntos[self.proximo].setConjunto(enderecoConjunto)
+            proximo += 1
+
+            return self.conjuntos[self.proximo-1]
+        return None
 
 class MemoriaPrincipal:
     enderecos = []
     total = 0
 
-    def buscaNaMP(enderecoTotal):
-        # for(int i=0;i<total;i++){
-        #     if(enderecos.get(i).equals(enderecoTotal)){
-        #         return true;
-        #     }
-        # }
-        return false
+    def __init__(self):
+        self.enderecos = []
+        self.total = 0
+
+    def adicionaNaMP(self, enderecoTotal):
+        self.enderecos.append(enderecoTotal)
+        self.total += 1
+
+    def buscaNaMP(self, enderecoTotal):
+        for i in self.enderecos:
+            if i == enderecoTotal:
+                return True
+        return False
