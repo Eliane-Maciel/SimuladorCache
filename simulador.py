@@ -1,20 +1,28 @@
 # -*- coding: utf-8 -*-
-from memoria_cache import Linha, Conjunto, MemoriaCache, MemoriaPrincipal
+
+from memoria_cache import *
 from leitura_arquivo import leituraArquivo
-# from interface import Application
+import sys
+import os
 
 
 def gravaDados():
-    import os
     os.system('cls' if os.name == 'nt' else 'clear')
-    politicaEscrita = int(raw_input('\tPolitica de Escrita : 0 - write-through  1 - write-back; '))
+    politicaEscrita = int(raw_input(
+        '\tPolitica de Escrita : 0 - write-through;\t1 - write-back; ')
+    )
     tamanhoDaLinha = int(raw_input('\tTamanho da Linha : '))
     numeroDeLinhas = int(raw_input('\tNúmero de linhas: '))
     linhasPorConjunto = int(raw_input('\tAssossiatividade por conjunto: '))
-    tempoAcesso = int(raw_input('\tTempo de acesso quando encontra (hit-time): '))
-    politicaSubstituicao = int(raw_input('\tPolitica de Substituição: 1 - LFU; 2 - LRU; '))
+    tempoAcesso = int(raw_input(
+        '\tTempo de acesso quando encontra (hit-time): ')
+    )
+    politicaSubstituicao = int(raw_input(
+        '\tPolitica de Substituição: 0 - LFU;\t1 - LRU;\t2 - Aleatório;')
+    )
 
-    tempoMP = int(raw_input('Tempo de leitura/escrita:'))
+    tempoMP = int(raw_input('\tTempo de leitura/escrita:'))
+
     memoriaPrincipal = MemoriaPrincipal()
     qtdeConjuntos = numeroDeLinhas/linhasPorConjunto
     tamanhoTotalDaCache = numeroDeLinhas * tamanhoDaLinha
@@ -27,7 +35,7 @@ def gravaDados():
         resto = aux
         tamanhoEnderecoConjunto += 1
 
-    #Calcula o tamanho do endereço da palavra
+    # Calcula o tamanho do endereço da palavra
     resto = 0
     aux = tamanhoDaLinha
     enderecoPalavra = 0
@@ -36,7 +44,7 @@ def gravaDados():
         resto = aux
         enderecoPalavra += 1
 
-    #Calcula o rótulo
+    # Calcula o rótulo
     rotulo = 32 - (enderecoPalavra + tamanhoEnderecoConjunto)
     memoriaCache = MemoriaCache(qtdeConjuntos, linhasPorConjunto)
     enderecos = leituraArquivo()
@@ -46,129 +54,159 @@ def gravaDados():
     leiturasNaMP = 0
     escritasNaCache = 0
     escritasNaMP = 0
-    naoEncontrouNaCacheLeitura = 0
     encontrouNaCacheLeitura = 0
-    naoEncontrouNaCacheEscrita = 0
     encontrouNaCacheEscrita = 0
-    naoEncontrouNaMPLeitura = 0
     encontrouNaMPLeitura = 0
-    naoEncontrouNaMPEscrita = 0
     encontrouNaMPEscrita = 0
-
     for end in enderecos:
         atributos = end.split(' ')
-        endereco = atributos[0];
-        operacao = atributos[1];
-
+        endereco = atributos[0]
+        operacao = atributos[1]
         # Transforma em binário
-        intEnd = int(endereco, 16);
-        endBinario = bin(intEnd)
-        endBinario = endBinario.replace("0b", "00")
-        bin_32 = '00000000000000000000000000000000'
-        #preenche com zeros na frente para ficar com 32 digitos
-        endBinario = bin_32 + endBinario
-
-        #Busca os endereços
+        my_hexdata = endereco
+        scale = 16
+        # equals to hexadecimal
+        num_of_bits = 32
+        endBinario = bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
         rotuloEndereco = endBinario[0:rotulo]
-        enderecoConjunto = endBinario[rotulo+1:rotulo+1+tamanhoEnderecoConjunto]
-
-        operacao  = operacao.replace('\n','')
+        enderecoConjunto = endBinario[
+            rotulo+1:rotulo+1+tamanhoEnderecoConjunto
+        ]
+        operacao = operacao.replace('\n', '')
         if operacao == "R":
-
             conjunto = memoriaCache.procuraConjunto(enderecoConjunto)
-
-            #Contador de leituras
+            leituras += 1
+            # Contador de leituras
             leiturasNaCache += 1
-
             if conjunto:
-                #Procura rotulo pelo conjunto encontrado
+                # Procura rotulo pelo conjunto encontrado
                 retornoRotulo = conjunto.procuraRotulo(rotuloEndereco)
                 if retornoRotulo:
-                    #Se encontrou o rótulo ocorre hit
+                    # Se encontrou o rótulo ocorre hit
                     encontrouNaCacheLeitura += 1
                 else:
-                    #caso não encontrou o rótulo da erro
-                    naoEncontrouNaCacheLeitura += 1
-                    conjunto.gravaRotulo(rotuloEndereco, politicaSubstituicao, politicaEscrita, memoriaPrincipal,
-                        endBinario)
+                    # Caso não encontrou o rótulo da erro
+                    conjunto.gravaRotulo(
+                        rotuloEndereco, politicaSubstituicao, politicaEscrita,
+                        memoriaPrincipal, endBinario
+                    )
                     leiturasNaMP += 1
                     encontrouNaMPLeitura += 1
             else:
-                naoEncontrouNaCacheLeitura += 1
                 conjunto = memoriaCache.gravaConjunto(enderecoConjunto)
                 if conjunto:
-                    conjunto.gravaRotulo(rotuloEndereco, politicaSubstituicao, politicaEscrita, memoriaPrincipal,
-                        endBinario)
+                    conjunto.gravaRotulo(
+                        rotuloEndereco, politicaSubstituicao, politicaEscrita,
+                        memoriaPrincipal, endBinario
+                    )
                 leiturasNaMP += 1
                 encontrouNaMPLeitura += 1
-
         else:
             escritas += 1
             conjunto = memoriaCache.procuraConjunto(enderecoConjunto)
             escritasNaCache += 1
             if not conjunto:
                 conjunto = memoriaCache.gravaConjunto(enderecoConjunto)
-                conjunto.gravaRotulo(rotuloEndereco, politicaSubstituicao, politicaEscrita, memoriaPrincipal,
-                    endBinario)
-                naoEncontrouNaCacheEscrita += 1
+                conjunto.gravaRotulo(
+                    rotuloEndereco, politicaSubstituicao, politicaEscrita,
+                    memoriaPrincipal, endBinario
+                )
             else:
                 retornoRotulo = conjunto.procuraRotulo(rotuloEndereco)
                 if not retornoRotulo:
-                    conjunto.gravaRotulo(rotuloEndereco, politicaSubstituicao, politicaEscrita, memoriaPrincipal,
-                        endBinario)
-                    naoEncontrouNaCacheEscrita += 1
+                    conjunto.gravaRotulo(
+                        rotuloEndereco, politicaSubstituicao, politicaEscrita,
+                        memoriaPrincipal, endBinario
+                    )
                 else:
                     encontrouNaCacheEscrita += 1
+            if politicaEscrita == 0:
+                escritasNaMP += 1
+                encontrouNaMPEscrita += 1
 
-                if politicaEscrita == 0:
-                    escritasNaMP += 1
-                    encontrouNaMPEscrita += 1
-
-    totalDeRegistros = leiturasNaCache + escritas #Seta total de escritas;
+    totalDeRegistros = leituras + escritas
+    # Seta total de escritas;
     totalDeEscritas = escritas
-    totalDeLeituras = leiturasNaCache
-
+    totalDeLeituras = leituras
     taxaDeAcertoCacheLeitura = 0
-    #Acerto Leitura Cache
+    # Acerto Leitura Cache
     if leiturasNaCache:
-        taxaDeAcertoCacheLeitura = (encontrouNaCacheLeitura*100)/leiturasNaCache
-        taxaDeErroCacheLeitura = (naoEncontrouNaCacheLeitura*100)/leiturasNaCache
-
-
-    #Acerto Leitura MP
+        taxaDeAcertoCacheLeitura = (
+            (encontrouNaCacheLeitura*100.0)/leiturasNaCache
+        )
+    # Acerto Leitura MP
     if leiturasNaMP:
-        taxaDeAcertoMPLeitura = (encontrouNaMPLeitura*100)/leiturasNaMP
-        #Erro Leitura MP
-        taxaDeErroMPLeitura = (naoEncontrouNaMPLeitura*100)/leiturasNaMP
-
+        taxaDeAcertoMPLeitura = (encontrouNaMPLeitura*100.0)/leiturasNaMP
     if escritasNaCache:
-        #Erro Escrita Cache
-        taxaDeErroCacheEscrita = (naoEncontrouNaCacheEscrita*100)/escritasNaCache
-        #Acerto Escrita Cache
-        taxaDeAcertoCacheEscrita = (encontrouNaCacheEscrita*100)/escritasNaCache
-
+        taxaDeAcertoCacheEscrita = (
+            (encontrouNaCacheEscrita*100.0)/escritasNaCache
+        )
+    totalLeituraEscrita = (
+        float(encontrouNaCacheLeitura)+float(encontrouNaCacheEscrita)
+    )
+    taxaAcerto = totalLeituraEscrita / (leiturasNaCache + escritasNaCache)
+    tempoMedio = 0.0
     if taxaDeAcertoCacheLeitura:
-        tempoMedio = (((taxaDeAcertoCacheLeitura/100)*tempoAcesso) +
-                ((1 - (taxaDeAcertoCacheLeitura/100)) * (tempoAcesso + tempoMP)))
-
-    tempoMedio = format(tempoMedio, '.4f')
+        t1 = tempoAcesso
+        # tempoMedio = t1+ (1-h)*t2
+        h_taxa = taxaAcerto
+        tempoMedio = t1 + ((1 - h_taxa) * tempoMP)
+    taxaAcerto = taxaAcerto * 100.0
+    tempoMedio = format(tempoMedio, '.2f')
     taxaDeAcertoCacheLeitura = format(taxaDeAcertoCacheLeitura, '.4f')
+    taxaDeAcertoCacheEscrita = format(taxaDeAcertoCacheEscrita, '.4f')
+    taxaAcerto = format(taxaAcerto, '.4f')
+
     os.system('cls' if os.name == 'nt' else 'clear')
-    l1 = "Politica de Escrita: "+ str(politicaEscrita) + ", \n"
-    l2 = "Tamanho da linha: "+ str(tamanhoDaLinha) + ", \n"
-    l3 = "Numero de linhas: "+ str(numeroDeLinhas) + ", \n"
-    l4 = "Assossiatividade por conjunto: "+ str(linhasPorConjunto) + ", \n"
-    l5 = "Tempo de Acesso na Cache: "+ str(tempoAcesso) + ", \n"
-    l6 = "Politica de Substituição: "+ str(politicaSubstituicao) + ", \n"
-    l7 = "Tempo de Acesso na memória principal: "+ str(tempoMP) + ", \n"
-    l8 = "Total de registros na cache: "+ str(totalDeRegistros) + ", \n"
-    l9 = "Total de leituras na cache: "+ str(totalDeLeituras) + ", \n"
-    l10 = "Total de escritas na cache: "+ str(totalDeEscritas) + ", \n"
-    l11 = "Total de escritas na MP: " + str(encontrouNaMPEscrita) +", \n"
-    l12 = "Total de leituras na MP: "+ str(leiturasNaMP)+", \n"
-    l13 = "Taxa de acerto Cache: "+str(taxaDeAcertoCacheLeitura)+", \n"
-    l14 = "Tempo medio de acesso da cache: "+ str(tempoMedio)+", \n"
-    texto = l1+l2+l3+l4+l5+l6+l7+l8+l9+l10+l11+l12+l13+l14
+    texto = ""
+    texto += "\nDADOS DE ENTRADA:\n"
+    if politicaEscrita == 0:
+        texto += "Politica de Escrita: " + str(politicaEscrita)
+        texto += " - write-through\n"
+    else:
+        texto += "Politica de Escrita: " + str(politicaEscrita)
+        texto += " - write-back\n"
+    texto += "Tamanho da linha: " + str(tamanhoDaLinha) + ", \n"
+    texto += "Numero de linhas: " + str(numeroDeLinhas) + ", \n"
+    texto += "Associatividade por conjunto: " + str(linhasPorConjunto) + "\n"
+    texto += "Tempo de Acesso na Cache: " + str(tempoAcesso) + ", \n"
+
+    if politicaSubstituicao == 0:
+        texto += "Politica de Substituição: " + str(politicaSubstituicao)
+        texto += " - LFU\n"
+    elif politicaSubstituicao == 1:
+        texto += "Politica de Substituição: " + str(politicaSubstituicao)
+        texto += " - LRU\n"
+    else:
+        texto += "Politica de Substituição: " + str(politicaSubstituicao)
+        texto += " - Aleatorio\n"
+
+    texto += "Tempo de Acesso na memória principal: " + str(tempoMP) + "ns\n"
+
+    texto += "\nRESULTADOS:\n"
+    texto += "Tamanho da Cache: " + str(tamanhoTotalDaCache) + "\n"
+    texto += "Total de endereços no arquivo de entrada:\n"
+    texto += "Total de registros: " + str(totalDeRegistros) + "\n"
+    texto += "Total de leituras: " + str(totalDeLeituras) + "\n"
+    texto += "Total de escritas: " + str(totalDeEscritas) + "\n"
+
+    texto += "Dados da Cache:\n"
+    texto += "Total de leituras: " + str(leiturasNaCache) + "\n"
+    texto += "Total de acertos: " + str(encontrouNaCacheLeitura) + "\n"
+    texto += "Taxa de acerto Leitura: " + str(taxaDeAcertoCacheLeitura) + "%\n"
+
+    texto += "Total de escritas: " + str(escritasNaCache) + "\n"
+    texto += "Total de acertos: " + str(encontrouNaCacheEscrita) + "\n"
+    texto += "Taxa de acerto Escrita: "+str(taxaDeAcertoCacheEscrita) + "%\n"
+
+    texto += "Taxa de acertos: " + str(taxaAcerto) + "%\n"
+    texto += "Tempo médio de acesso da cache: " + str(tempoMedio) + "ns\n"
+
+    texto += "Dados da Memória Principal:\n"
+    texto += "Total de escritas: " + str(encontrouNaMPEscrita) + "\n"
+    texto += "Total de leituras: " + str(encontrouNaMPLeitura) + "\n"
+    texto += "Acessos: " + str(leiturasNaMP+escritasNaMP) + "\n"
+
     print texto
 
     EscreveResultados(texto)
@@ -181,6 +219,7 @@ def EscreveResultados(texto):
     arquivo.writelines(texto)
     arquivo.close()
     return
+
 
 def main():
     gravaDados()

@@ -1,14 +1,29 @@
-Politica de Escrita: 0, 
+
+DADOS DE ENTRADA:
+Politica de Escrita: 0 - write-through
 Tamanho da linha: 128, 
-Numero de linhas: 128, 
-Assossiatividade por conjunto: 4, 
+Numero de linhas: 16, 
+Associatividade por conjunto: 4
 Tempo de Acesso na Cache: 10, 
-Politica de Substituição: 2, 
-Tempo de Acesso na memória principal: 60, 
-Total de registros na cache: 100, 
-Total de leituras na cache: 88, 
-Total de escritas na cache: 12, 
-Total de escritas na MP: 12, 
-Total de leituras na MP: 1, 
-Taxa de acerto Cache: 98.0000, 
-Tempo medio de acesso da cache: 70.0000, 
+Politica de Substituição: 1 - LRU
+Tempo de Acesso na memória principal: 60ns
+
+RESULTADOS:
+Tamanho da Cache: 2048
+Total de endereços no arquivo de entrada:
+Total de registros: 51200
+Total de leituras: 45056
+Total de escritas: 6144
+Dados da Cache:
+Total de leituras: 45056
+Total de acertos: 33278
+Taxa de acerto Leitura: 73.8592%
+Total de escritas: 6144
+Total de acertos: 4096
+Taxa de acerto Escrita: 66.6667%
+Taxa de acertos: 72.9961%
+Tempo médio de acesso da cache: 26.20ns
+Dados da Memória Principal:
+Total de escritas: 6144
+Total de leituras: 11778
+Acessos: 17922

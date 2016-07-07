@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from datetime import datetime
 from random import randint
+
 
 class Linha:
     """Class object linha"""
@@ -21,9 +23,9 @@ class Conjunto:
     prox = 0
 
     def __init__(self, qtdeLinhas):
-        linhas = []
-        tamanho = qtdeLinhas
-        prox = 0
+        self.linhas = []
+        self.tamanho = qtdeLinhas
+        self.prox = 0
 
     def getConjunto(self):
         return self.conjunto
@@ -34,58 +36,71 @@ class Conjunto:
     def procuraRotulo(self, rotuloEndereco):
         for lin in self.linha:
             if lin.rotulo == rotuloEndereco:
+                lin.lfu += 1
                 data = datetime.now()
                 lin.lru = data
                 return True
         return False
 
-    def gravaRotulo(self, rotuloEndereco, politicaSubstituicao, politicaGravacao, mp, enderecoTotal):
-        if self.prox == self.tamanho:
-            if politicaSubstituicao == 0: #LRU
-                poslinhaMenosRecUsada = buscaUltimaUsada()
-                data = datetime.now()
-                linha_object = Linha(rotuloEndereco, enderecoTotal)
-                linha_object.lru = data
-                del self.linha[poslinhaMenosRecUsada]
-                self.linha.insert(poslinhaMenosRecUsada, linha_object)
-                if politicaGravacao == 1:
-                    mp.adicionaNaMP(linha_object.enderecototal)
-
-            else if politicaSubstituicao == 1:
-                pass
-            else: #Aleatorio
-                linhaAleatoria = randint(0, self.prox)
-                if politicaGravacao == 1:
-                    mp.adicionaNaMP(linha[linhaAleatoria].enderecoTotal)
-                linha_object = Linha(rotuloEndereco, enderecoTotal)
-                data = datetime.now()
-                linha_object.lru = data
-                self.linha.insert(linhaAleatoria, linha_object)
-
-        else:
-            data = datetime.now()
-            linha_object = Linha(rotuloEndereco, enderecoTotal)
-            linha_object.lru(data)
-            self.linha.append(linha_object)
-            self.prox = self.prox + 1
-
     def buscaUltimaUsada(self):
-        aux = linha[0].lru
+        aux = self.linha[0].lru
         menosUsado = 0
-        for i, x in enumerate(testlist):
+        for i, x in enumerate(self.linha):
             if x.lru < aux:
                 aux = x.lru
                 menosUsado = i
         return menosUsado
 
     def buscaMenosUsada(self):
-        aux = linha[0].lfu
+        aux = self.linha[0].lfu
         menosUsado = 0
-        for i, x in enumerate(testlist):
-            if x.lru < aux:
-                aux = x.lru
+        for i, x in enumerate(self.linha):
+            if x.lfu < aux:
+                aux = x.lfu
                 menosUsado = i
         return menosUsado
+
+    def gravaRotulo(
+        self, rotuloEndereco, politicaSubstituicao, politicaGravacao, mp,
+        enderecoTotal
+    ):
+        if self.prox == self.tamanho and self.linha != []:
+            # LFU
+            if politicaSubstituicao == 0:
+                poslinhaMenosUsada = self.buscaMenosUsada()
+                linha_object = Linha(rotuloEndereco, enderecoTotal)
+                del self.linha[poslinhaMenosUsada]
+                self.linha.insert(poslinhaMenosUsada, linha_object)
+                if politicaGravacao == 1:
+                    mp.adicionaNaMP(linha_object.enderecototal)
+            # LRU
+            elif politicaSubstituicao == 1:
+                poslinhaMenosRecUsada = self.buscaUltimaUsada()
+                data = datetime.now()
+                linha_object = Linha(rotuloEndereco, enderecoTotal)
+                linha_object.lru = data
+                del self.linha[poslinhaMenosRecUsada]
+                self.linha.insert(poslinhaMenosRecUsada, linha_object)
+                if politicaGravacao == 1:
+                    mp.adicionaNaMP(linha_object.enderecoTotal)
+            # Aleatorio
+            else:
+                linhaAleatoria = randint(0, self.prox)
+                if politicaGravacao == 1:
+                    mp.adicionaNaMP(self.linha[linhaAleatoria].enderecoTotal)
+                linha_object = Linha(rotuloEndereco, enderecoTotal)
+                self.linha.insert(linhaAleatoria, linha_object)
+
+        else:
+            linha_object = Linha(rotuloEndereco, enderecoTotal)
+            if politicaSubstituicao == 0:
+                linha_object.lfu += 1
+            elif politicaSubstituicao == 1:
+                data = datetime.now()
+                linha_object.lru = data
+            self.linha.append(linha_object)
+            self.prox = self.prox + 1
+
 
 class MemoriaCache:
     conjuntos = []
@@ -97,7 +112,6 @@ class MemoriaCache:
         for i in range(0, qtdeConjuntos):
             self.conjuntos.append(Conjunto(qtdeLinhas))
         self.proximo = 0
-
 
     def setConjuntos(self, conjuntos):
         self.conjuntos = conjuntos
@@ -115,9 +129,9 @@ class MemoriaCache:
         if self.proximo != self.tamanho:
             self.conjuntos[self.proximo].setConjunto(enderecoConjunto)
             self.proximo += 1
-
             return self.conjuntos[self.proximo-1]
         return None
+
 
 class MemoriaPrincipal:
     enderecos = []
