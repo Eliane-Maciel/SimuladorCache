@@ -9,8 +9,10 @@ Faça o clone do repositório:
 
 $ git clone git@github.com:eifmaciel/SimuladorCache.git
 
-Entre no diretório. Instale o Django na virtualenv (sempre trabalhe no ambiente virtual) e colete os arquivos estáticos:
+Entre no diretório. 
+
 $ cd SimuladorCache
+
 $ python simulador.py
 
 Veja a descrição de funicionamento no arquivo Mem_ria_Cache.pdf
