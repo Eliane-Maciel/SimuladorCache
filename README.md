@@ -15,4 +15,3 @@ $ cd SimuladorCache
 
 $ python simulador.py
 
-Veja a descrição de funicionamento no arquivo Mem_ria_Cache.pdf
