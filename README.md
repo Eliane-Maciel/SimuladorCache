@@ -7,7 +7,7 @@ Simulador de uma memória Cache. Trabalho feito para a disciplina de Arquitetura
 
 Faça o clone do repositório:
 
-$ git clone git@github.com:eifmaciel/SimuladorCache.git
+$ git clone https://github.com/elianemaciel/SimuladorCache.git
 
 Entre no diretório. 
 
